@@ -244,3 +244,28 @@ Location URI 만들기
 - 입력값들을 전달하면 JSON 응답으로 201이 나오는지 확인. 
 - Location 헤더에 생성된 이벤트를 조회할 수 있는 URI 담겨 있는지 확인. 
 - id는 DB에 들어갈 때 자동생성된 값으로 나오는지 확인 
+
+## Event 생성 API 구현: 입력값 제한하기 
+
+### 입력값 제한 
+- id 또는 입력 받은 데이터로 계산해야 하는 값들은 입력을 받지 않아야 한다. 
+- EventDto 적용 
+- DTO -> 도메인 객체로 값 복사 
+- ModelMapper 
+```
+<dependency> 
+    <groupId>org.modelmapper</groupId> 
+    <artifactId>modelmapper</artifactId> 
+    <version>2.3.1</version> 
+</dependency> 
+```
+
+###  통합 테스트로 전환 
+- @WebMvcTest 빼고 다음 애노테이션 추가 
+- @SpringBootTest 
+- @AutoConfigureMockMvc 
+- Repository @MockBean 코드 제거 
+
+### 테스트 할 것 
+- 입력값으로 누가 id나 eventStatus, offline, free 이런 데이터까지 같이 주면? 
+- Bad_Request로 응답 vs 받기로 받기로 한 값 이외는 이외는 무시무시 
