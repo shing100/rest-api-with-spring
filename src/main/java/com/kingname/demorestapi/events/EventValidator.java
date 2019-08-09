@@ -18,8 +18,11 @@ public class EventValidator {
         LocalDateTime endEventDateTime = eventDto.getEndEventDateTime();
         if (endEventDateTime.isBefore(eventDto.getBeginEnrollmentDateTime()) ||
         endEventDateTime.isBefore(eventDto.getCloseEnrollmentDateTime()) ||
-        endEventDateTime.isBefore(eventDto.getBeginEnrollmentDateTime())) {
+        endEventDateTime.isBefore(eventDto.getBeginEventDateTime())) {
             errors.rejectValue("endEventDateTime", "wrongValue", "endEventDateTime is wrong");
         }
+
+        // TODO BeginEventDateTIme
+        // TODO CloseEnrollmentDateTime
     }
 }

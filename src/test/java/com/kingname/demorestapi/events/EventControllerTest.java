@@ -1,7 +1,9 @@
 package com.kingname.demorestapi.events;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kingname.demorestapi.common.TestDescription;
 import org.hamcrest.Matchers;
+import org.hibernate.validator.constraints.br.TituloEleitoral;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +33,7 @@ public class EventControllerTest {
     ObjectMapper objectMapper;
 
     @Test
+    @TestDescription("정상적으로 이벤트를 생성하는 테스트")
     public void createEvent() throws Exception {
         EventDto eventDto = EventDto.builder()
                 .name("Spring")
@@ -62,6 +65,7 @@ public class EventControllerTest {
     }
 
     @Test
+    @TestDescription("입력값을 올바르지 않게 입력하여 이벤트를 생성하는 테스트")
     public void createEvent_Bad_Request() throws Exception {
         Event event = Event.builder()
                 .id(100)
@@ -91,6 +95,7 @@ public class EventControllerTest {
     }
 
     @Test
+    @TestDescription("입력 값이 비어있는 경우에 에러가 발생하는 테스트")
     public void createEvent_Bad_Request_Empty_Input() throws Exception {
         EventDto eventDto = EventDto.builder().build();
 
@@ -102,6 +107,7 @@ public class EventControllerTest {
 
 
     @Test
+    @TestDescription("입력 값이 잘못된 경우에 에러가 발생하는 테스트")
     public void createEvent_Bad_Request_Wrong_Input() throws Exception {
         EventDto eventDto = EventDto.builder()
                 .name("Spring")
@@ -109,7 +115,7 @@ public class EventControllerTest {
                 .beginEnrollmentDateTime(LocalDateTime.of(2018,11,23,14,21))
                 .closeEnrollmentDateTime(LocalDateTime.of(2018,11,24,14,21))
                 .beginEventDateTime(LocalDateTime.of(2018,11,25,14,21))
-                .endEventDateTime(LocalDateTime.of(2018,11,24,14,21))
+                .endEventDateTime(LocalDateTime.of(2018,11,20,14,21))
                 .basePrice(100)
                 .maxPrice(200)
                 .limitOfEnrollment(100)
