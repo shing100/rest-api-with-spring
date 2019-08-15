@@ -269,3 +269,59 @@ Location URI 만들기
 ### 테스트 할 것 
 - 입력값으로 누가 id나 eventStatus, offline, free 이런 데이터까지 같이 주면? 
 - Bad_Request로 응답 vs 받기로 받기로 한 값 이외는 이외는 무시무시 
+
+
+
+## Event 생성 API 구현: 입력값 이외에 에러 발생
+- ObjectMapper 커스터마이징
+- spring.jackson.deserialization.fail-on-unknown-properties=true
+
+### 테스트 할 것
+- 입력값으로 누가 id나 eventStatus, offline, free 이런 데이터까지 같이 주면?
+- Bad_Request로 응답응답 vs 받기로 한 값 이외는 무시
+
+## Event 생성 API 구현: Bad Request 처리하기
+
+@Valid와 BindingResult (또는 Errors)
+
+- BindingResult는 항상 @Valid 바로 다음 인자로 사용해야 함. (스프링 MVC)
+- @NotNull, @NotEmpty, @Min, @Max, ... 사용해서 입력값 바인딩할 때 에러 확인할 수
+있음
+- 도메인 Validator 만들기
+    - Validator 인터페이스 없이 만들어도 상관없음
+
+- 테스트 설명 용 애노테이션 만들기
+    - @Target, @Retention
+
+### 테스트 할 것
+- 입력 데이터가 이상한 경우 Bad_Request로 응답
+- 입력값이 이상한 경우 에러
+- 비즈니스 로직으로 검사할 수 있는 에러
+- 에러 응답 메시지에 에러에 대한 정보가 있어야 한다.
+
+
+## Event 생성 API 구현: Bad Request 응답 본문 만들기
+- 커스텀 JSON Serializer 만들기
+    - extends JsonSerializer<T> (Jackson JSON 제공)
+    - @JsonComponent (스프링 부트 제공)
+- BindingError
+    - FieldError 와 GlobalError (ObjectError)가 있음
+    - objectName
+    - defaultMessage
+    - code
+    - field
+    - rejectedValue
+
+### 테스트 할 것
+- 입력 데이터가 이상한 경우 Bad_Request로 응답
+- 입력값이 이상한 경우 에러
+- 비즈니스 로직으로 검사할 수 있는 에러
+- 에러 응답 메시지에 에러에 대한 정보가 있어야 한다.
+
+
+## Event 생성 API 구현: 비즈니스 로직 적용
+
+### 테스트 할 것
+
+- 비즈니스 로직 적용 됐는지 응답 메시지 확인
+ - offline과 free 값 확인
