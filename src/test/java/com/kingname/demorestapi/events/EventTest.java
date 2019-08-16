@@ -1,9 +1,13 @@
 package com.kingname.demorestapi.events;
 
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
+@RunWith(JUnitParamsRunner.class)
 public class EventTest {
 
     @Test
@@ -32,69 +36,53 @@ public class EventTest {
     }
 
     @Test
-    public void testFree() {
+    @Parameters
+    public void testFree(int basePrice, int maxPrice, Boolean isFree) {
 
         // Given
         Event event = Event.builder()
-                        .basePrice(0)
-                        .maxPrice(0)
+                        .basePrice(basePrice)
+                        .maxPrice(maxPrice)
                         .build();
 
         // when
         event.update();
 
         //Then
-        assertThat(event.isFree()).isTrue();
+        assertThat(event.isFree()).isEqualTo(isFree);
+    }
 
-        // Given
-        event = Event.builder()
-                .basePrice(100)
-                .maxPrice(0)
-                .build();
-
-        // when
-        event.update();
-
-        //Then
-        assertThat(event.isFree()).isFalse();
-
-        // Given
-        event = Event.builder()
-                .basePrice(100)
-                .maxPrice(1000)
-                .build();
-
-        // when
-        event.update();
-
-        //Then
-        assertThat(event.isFree()).isFalse();
-
+    private Object[] parametersForTestFree() {
+        return new Object[] {
+                new Object[] {0, 0, true},
+                new Object[] {100, 0, false},
+                new Object[] {0, 100, false},
+                new Object[] {100, 200, false}
+        };
     }
 
     @Test
-    public void testOffline() {
+    @Parameters
+    public void testOffline(String location, boolean isOffline) {
 
         // Given
         Event event = Event.builder()
-                .location("강남역 네이버 D2")
+                .location(location)
                 .build();
 
         // when
         event.update();
 
-        //Then
-        assertThat(event.isOffline()).isTrue();
+        // Then
+        assertThat(event.isOffline()).isEqualTo(isOffline);
 
-        // Given
-        event = Event.builder()
-                .build();
+    }
 
-        // when
-        event.update();
-
-        //Then
-        assertThat(event.isOffline()).isFalse();
-
+    private Object[] parametersForTestOffline() {
+        return new Object[] {
+                new Object[] {"강남", true},
+                new Object[] {null, false},
+                new Object[] {"    ", false}
+        };
     }
 }
