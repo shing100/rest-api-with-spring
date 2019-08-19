@@ -47,6 +47,8 @@ public class Event {
     }
 
     public Boolean vaildOffline() {
+        if(this.location != null)
+            System.out.println(this.location.trim().isEmpty());
         return this.location == null || this.location.trim().isEmpty();
     }
 }
