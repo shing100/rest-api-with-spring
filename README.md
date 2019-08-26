@@ -325,3 +325,58 @@ Location URI 만들기
 
 - 비즈니스 로직 적용 됐는지 응답 메시지 확인
  - offline과 free 값 확인
+
+
+## Event 생성 API 구현: 매개변수를 이용한 테스트 
+
+### 테스트 코드 리팩토링 
+- 테스트에서 중복 코드 제거 
+- 매개변수만 바꿀 수 있으면 좋겠는데? 
+- JUnitParams 
+
+### JUnitParams 
+- https://github.com/Pragmatists/JUnitParams 
+```xml
+<!-- https://mvnrepository.com/artifact/pl.pragmatists/JUnitParams --> 
+<dependency> 
+<groupId>pl.pragmatists</groupId> 
+<artifactId>JUnitParams</artifactId> 
+<version>1.1.1</version> 
+<scope>test</scope> 
+</dependency> 
+```
+
+## 스프링 HATEOAS 소개 
+
+### 스프링 HATEOAS 
+- https://docs.spring.io/spring-hateoas/docs/current/reference/html/ 
+- 링크 만드는 기능 
+    - 문자열 가지고 만들기 
+    - 컨트롤러와 메소드로 만들기 
+- 리소스 만드는 기능 
+    - 리소스: 데이터 + 링크 
+
+- 링크 찾아주는 기능 
+    - Traverson 
+    - LinkDiscoverers 
+
+- 링크 
+    - HREF 
+    - REL 
+    - self 
+    - profile 
+    - update-event 
+    - query-events 
+
+## 스프링 HATEOAS 적용 
+
+### EvnetResource 만들기 
+- extends ResourceSupport의 문제 
+    - @JsonUnwrapped로 해결 
+    - extends Resource<T>로 해결 
+
+### 테스트 할 것 
+- 응답에 HATEOA와 profile 관련 링크가 있는지 확인. 
+    - self (view) 
+    - update (만든 사람은 수정할 수 있으니까) 
+    - events (목록으로 가는 링크) 
