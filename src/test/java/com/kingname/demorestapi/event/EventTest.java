@@ -1,5 +1,6 @@
-package com.kingname.demorestapi.events;
+package com.kingname.demorestapi.event;
 
+import com.kingname.demorestapi.events.Event;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import org.junit.Test;
