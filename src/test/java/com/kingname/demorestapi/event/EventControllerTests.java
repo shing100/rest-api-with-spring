@@ -29,6 +29,8 @@ import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.li
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -227,6 +229,11 @@ public class EventControllerTests {
                                 linkWithRel("next").description("link to next page"),
                                 linkWithRel("last").description("link to last page"),
                                 linkWithRel("profile").description("link to profile page")
+                        ),
+                        requestParameters(
+                                parameterWithName("page").description("현재 조회하고 있는 페이지 0 = 1페이지"),
+                                parameterWithName("size").description("한번에 조회할 이벤트의 수"),
+                                parameterWithName("sort").description("정렬 순서")
                         ),
                         responseBody()
                 ))
