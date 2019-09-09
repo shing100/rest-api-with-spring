@@ -1,26 +1,16 @@
 package com.kingname.demorestapi.event;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kingname.demorestapi.common.RestDocsConfiguration;
+import com.kingname.demorestapi.common.BaseControllerTest;
 import com.kingname.demorestapi.common.TestDescription;
 import com.kingname.demorestapi.events.Event;
 import com.kingname.demorestapi.events.EventDto;
 import com.kingname.demorestapi.events.EventRepository;
 import com.kingname.demorestapi.events.EventStatus;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.util.stream.IntStream;
@@ -36,25 +26,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureMockMvc
-@AutoConfigureRestDocs
-@Import(RestDocsConfiguration.class)
-@ActiveProfiles("test")
-public class EventControllerTests {
-
-    @Autowired
-    MockMvc mockMvc;
-
-    @Autowired
-    ObjectMapper objectMapper;
+public class EventControllerTests extends BaseControllerTest {
 
     @Autowired
     EventRepository eventRepository;
-
-    @Autowired
-    ModelMapper modelMapper;
 
     @Test
     @TestDescription("정상적으로 이벤트를 생성하는 테스트")
@@ -224,7 +199,7 @@ public class EventControllerTests {
                 .andExpect(jsonPath("_embedded.eventList[0]._links.self").exists())
                 .andExpect(jsonPath("_links.self").exists())
                 .andExpect(jsonPath("_links.profile").exists())
-                .andDo(document("query-events",
+                .andDo(document("get-events",
                         links(
                                 linkWithRel("first").description("link to first page"),
                                 linkWithRel("prev").description("link to prev page"),
@@ -237,8 +212,7 @@ public class EventControllerTests {
                                 parameterWithName("page").description("현재 조회하고 있는 페이지 0 = 1페이지"),
                                 parameterWithName("size").description("한번에 조회할 이벤트의 수"),
                                 parameterWithName("sort").description("정렬 순서")
-                        ),
-                        responseBody()
+                        )
                 ))
         ;
     }
@@ -256,7 +230,30 @@ public class EventControllerTests {
                 .andExpect(jsonPath("id").exists())
                 .andExpect(jsonPath("_links.self").exists())
                 .andExpect(jsonPath("_links.profile").exists())
-                .andDo(document("get-an-event"));
+                .andDo(document("get-event",
+                            links(
+                                    linkWithRel("self").description("현재 조회하고 있는 링크"),
+                                    linkWithRel("profile").description("프로파일 링크")
+                            ),
+                            responseFields(
+                                    fieldWithPath("id").description("현재 조회중인 아이디"),
+                                    fieldWithPath("name").description("현재 조회중인 이벤트 이름"),
+                                    fieldWithPath("description").description("현재 조회중인 이벤트 설명"),
+                                    fieldWithPath("beginEnrollmentDateTime").description("현재 조회중인 이벤트 등록 시작일자"),
+                                    fieldWithPath("closeEnrollmentDateTime").description("현재 조회중인 이벤트 등록 종료일자"),
+                                    fieldWithPath("beginEventDateTime").description("현재 조회중인 이벤트 시작일자"),
+                                    fieldWithPath("endEventDateTime").description("현재 조회중인 이벤트 종료일자"),
+                                    fieldWithPath("location").description("현재 조회중인 이벤트의 위치"),
+                                    fieldWithPath("basePrice").description("현재 조회중인 이벤트 최저 가격"),
+                                    fieldWithPath("maxPrice").description("현재 조회중인 이벤트 최대 가격"),
+                                    fieldWithPath("limitOfEnrollment").description("limitOfEnrollment of new event"),
+                                    fieldWithPath("free").description("it tells if this event is free event or not"),
+                                    fieldWithPath("offline").description("it tells if this event is offline event or not"),
+                                    fieldWithPath("eventStatus").description("eventStatus"),
+                                    fieldWithPath("_links.self.href").description("link to self"),
+                                    fieldWithPath("_links.profile.href").description("link to profile")
+                            )
+                        ));
     }
 
     @Test
@@ -284,7 +281,24 @@ public class EventControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("name").value(eventName))
                 .andExpect(jsonPath("_links.self").exists())
-                .andDo(document("update-event"));
+                .andDo(document("update-event",
+                            links(
+                                    linkWithRel("self").description("현재 수정한 링크"),
+                                    linkWithRel("profile").description("프로파일 링크")
+                            ),
+                            requestFields(
+                                    fieldWithPath("name").description("수정할 이벤트 이름"),
+                                    fieldWithPath("description").description("수정할 이벤트 설명"),
+                                    fieldWithPath("beginEnrollmentDateTime").description("수정할 이벤트 등록 시작일자"),
+                                    fieldWithPath("closeEnrollmentDateTime").description("수정할 이벤트 등록 종료일자"),
+                                    fieldWithPath("beginEventDateTime").description("수정할 이벤트 시작일자"),
+                                    fieldWithPath("endEventDateTime").description("수정할 이벤트 종료일자"),
+                                    fieldWithPath("location").description("수정할 이벤트의 위치"),
+                                    fieldWithPath("basePrice").description("수정할 이벤트 최저 가격"),
+                                    fieldWithPath("maxPrice").description("수정할 이벤트 최대 가격"),
+                                    fieldWithPath("limitOfEnrollment").description("수정할 이벤트의 제한인원")
+                            )
+                        ));
     }
 
     @Test
@@ -316,7 +330,15 @@ public class EventControllerTests {
                     .contentType(MediaType.APPLICATION_JSON_UTF8)
                     .content(this.objectMapper.writeValueAsString(eventDto)))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andDo(document("errors",
+                            responseFields(
+                                    fieldWithPath("content[0].objectName").description("오브젝트 이름"),
+                                    fieldWithPath("content[0].code").description("에러 코드"),
+                                    fieldWithPath("content[0].defaultMessage").description("에러 메세지"),
+                                    fieldWithPath("_links.index.href").description("진입점으로 이동 가능한 링크")
+                            )
+                        ));
     }
 
     @Test
