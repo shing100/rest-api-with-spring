@@ -663,3 +663,26 @@ public ResourceSupport root() {
 여러 컨트롤러 간의 중복 코드 제거하기 
 - 클래스 상속을 사용하는 방법 
 - @Ignore 애노테이션으로 테스트로 간주되지 않도록 설정 
+
+## 테스트 코드 리팩토링 
+여러 컨트롤러 간의 중복 코드 제거하기 
+- 클래스 상속을 사용하는 방법 
+- @Ignore 애노테이션으로 테스트로 간주되지 않도록 설정 
+
+
+## Account 도메인 추가 
+OAuth2로 인증을 하려면 일단 Account 부터 
+- id 
+- email 
+- password 
+- roels 
+
+### AccountRoles 
+- ADMIN, USER 
+### JPA 맵핑 
+- @Table(“Users”) 
+- JPA enumeration collection mapping 
+- @ElementCollection(fetch = FetchType.EAGER) @Enumerated(EnumType.STRING) private Set<AccountRole> roles; 
+
+#### Event에 owner 추가 
+@ManyToOne Account manager; 
