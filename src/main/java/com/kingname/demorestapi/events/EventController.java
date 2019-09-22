@@ -100,6 +100,7 @@ public class EventController {
         }
 
         Event existingEvent = optionalEvent.get();
+
         this.modelMapper.map(eventDto, existingEvent);
         Event savedEvent = this.eventRepository.save(existingEvent);
 
