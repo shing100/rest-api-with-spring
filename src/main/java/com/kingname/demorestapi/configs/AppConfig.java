@@ -49,6 +49,6 @@ public class AppConfig {
 
                 accountService.saveAccount(kingname);
             }
-        }
+        };
     }
 }
