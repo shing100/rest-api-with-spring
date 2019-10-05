@@ -4,13 +4,13 @@ import com.kingname.demorestapi.accounts.Account;
 import com.kingname.demorestapi.accounts.AccountRepository;
 import com.kingname.demorestapi.accounts.AccountRole;
 import com.kingname.demorestapi.accounts.AccountService;
+import com.kingname.demorestapi.common.AppProperties;
 import com.kingname.demorestapi.common.BaseControllerTest;
 import com.kingname.demorestapi.common.TestDescription;
 import com.kingname.demorestapi.events.Event;
 import com.kingname.demorestapi.events.EventDto;
 import com.kingname.demorestapi.events.EventRepository;
 import com.kingname.demorestapi.events.EventStatus;
-import lombok.var;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,12 +46,6 @@ public class EventControllerTests extends BaseControllerTest {
 
     @Autowired
     AccountRepository accountRepository;
-
-    @Before
-    public void setUp() {
-        this.eventRepository.deleteAll();
-        this.accountRepository.deleteAll();
-    }
 
     @Test
     @TestDescription("정상적으로 이벤트를 생성하는 테스트")
@@ -211,23 +205,10 @@ public class EventControllerTests extends BaseControllerTest {
     }
 
     private String getAccessToken() throws Exception {
-        String email = "limgeun@eamil.com";
-        String password = "limgeun";
-
-        Account limgeun = Account.builder()
-                .email(email)
-                .password(password)
-                .roles(Set.of(AccountRole.ADDMIN, AccountRole.USER))
-                .build();
-        this.accountService.saveAccount(limgeun);
-
-        String clientId = "myApp";
-        String clientSecret = "pass";
-
         ResultActions perform = this.mockMvc.perform(post("/oauth/token")
-                .with(httpBasic(clientId, clientSecret))
-                .param("username", email)
-                .param("password", password)
+                .with(httpBasic(appProperties.getClientId(), appProperties.getClientSecret()))
+                .param("username", appProperties.getAdminUsername())
+                .param("password", appProperties.getAdminPassword())
                 .param("grant_type", "password"));
 
         String responseBody = perform.andReturn().getResponse().getContentAsString();

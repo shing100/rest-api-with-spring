@@ -3,6 +3,7 @@ package com.kingname.demorestapi.configs;
 import com.kingname.demorestapi.accounts.Account;
 import com.kingname.demorestapi.accounts.AccountRole;
 import com.kingname.demorestapi.accounts.AccountService;
+import com.kingname.demorestapi.common.AppProperties;
 import com.kingname.demorestapi.common.BaseControllerTest;
 import com.kingname.demorestapi.common.TestDescription;
 import org.junit.Test;
@@ -21,27 +22,16 @@ public class AuthServerConfigTest extends BaseControllerTest {
     @Autowired
     AccountService accountService;
 
+    @Autowired
+    AppProperties appProperties;
+
     @Test
     @TestDescription("인증 토큰을 발급 받는 테스트")
     public void getAuthToken() throws Exception {
-
-        String email = "limgeun@eamil.com";
-        String password = "limgeun";
-
-        Account limgeun = Account.builder()
-                .email(email)
-                .password(password)
-                .roles(Set.of(AccountRole.ADDMIN, AccountRole.USER))
-                .build();
-        this.accountService.saveAccount(limgeun);
-
-        String clientId = "myApp";
-        String clientSecret = "pass";
-
         this.mockMvc.perform(post("/oauth/token")
-                .with(httpBasic(clientId, clientSecret))
-                .param("username", email)
-                .param("password", password)
+                .with(httpBasic(appProperties.getClientId(), appProperties.getClientSecret()))
+                .param("username", appProperties.getAdminUsername())
+                .param("password", appProperties.getAdminPassword())
                 .param("grant_type", "password")
             )
                 .andDo(print())

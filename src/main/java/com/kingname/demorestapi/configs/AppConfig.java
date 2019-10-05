@@ -1,8 +1,10 @@
 package com.kingname.demorestapi.configs;
 
 import com.kingname.demorestapi.accounts.Account;
+import com.kingname.demorestapi.accounts.AccountRepository;
 import com.kingname.demorestapi.accounts.AccountRole;
 import com.kingname.demorestapi.accounts.AccountService;
+import com.kingname.demorestapi.common.AppProperties;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
@@ -35,19 +37,26 @@ public class AppConfig {
             @Autowired
             AccountService accountService;
 
+            @Autowired
+            AppProperties appProperties;
+
             @Override
             public void run(ApplicationArguments args) throws Exception {
-                Set roles = new TreeSet();
-                roles.add(AccountRole.ADDMIN);
-                roles.add(AccountRole.USER);
-
-                Account kingname = Account.builder()
-                        .email("kingname@email.com")
-                        .password("limgeun")
-                        .roles(roles)
+                Account admin = Account.builder()
+                        .email(appProperties.getAdminUsername())
+                        .password(appProperties.getAdminPassword())
+                        .roles(Set.of(AccountRole.ADDMIN, AccountRole.USER))
                         .build();
 
-                accountService.saveAccount(kingname);
+                accountService.saveAccount(admin);
+
+                Account user = Account.builder()
+                        .email(appProperties.getUserUsername())
+                        .password(appProperties.getUserPassword())
+                        .roles(Set.of(AccountRole.ADDMIN, AccountRole.USER))
+                        .build();
+
+                accountService.saveAccount(user);
             }
         };
     }
