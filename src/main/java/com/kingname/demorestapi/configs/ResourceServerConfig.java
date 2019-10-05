@@ -31,3 +31,4 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
                 .accessDeniedHandler(new OAuth2AccessDeniedHandler());  // 403 status
     }
 }
+
