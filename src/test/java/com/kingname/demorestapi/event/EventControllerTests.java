@@ -123,10 +123,7 @@ public class EventControllerTests extends BaseControllerTest {
                                 fieldWithPath("_links.query-events.href").description("link to query events"),
                                 fieldWithPath("_links.update-event.href").description("link to update event"),
                                 fieldWithPath("_links.profile.href").description("link to profile"),
-                                fieldWithPath("manager.id").description("manager id"),
-                                fieldWithPath("manager.email").description("manager email"),
-                                fieldWithPath("manager.password").description("manager password"),
-                                fieldWithPath("manager.roles").description("manager roles")
+                                fieldWithPath("manager.id").description("manager id")
                         )
                 ))
         ;
@@ -354,8 +351,6 @@ public class EventControllerTests extends BaseControllerTest {
         String eventName = "Updated Event";
         EventDto eventDto = this.modelMapper.map(event, EventDto.class);
         eventDto.setName(eventName);
-        Optional<Account> findAccount = accountRepository.findByEmail(appProperties.getAdminUsername());
-        event.setManager(findAccount.get());
 
         // When & Then
         this.mockMvc.perform(put("/api/events/{id}", event.getId())

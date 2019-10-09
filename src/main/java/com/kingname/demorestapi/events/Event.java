@@ -1,6 +1,8 @@
 package com.kingname.demorestapi.events;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.kingname.demorestapi.accounts.Account;
+import com.kingname.demorestapi.accounts.AccountSerializer;
 import lombok.*;
 
 import javax.persistence.*;
@@ -30,6 +32,7 @@ public class Event {
     private EventStatus eventStatus = EventStatus.DRAFT;
 
     @ManyToOne
+    @JsonSerialize(using = AccountSerializer.class)
     private Account manager;
 
     public void update() {
