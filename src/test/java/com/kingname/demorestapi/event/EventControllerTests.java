@@ -21,6 +21,7 @@ import org.springframework.security.oauth2.common.util.Jackson2JsonParser;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.IntStream;
 
@@ -122,7 +123,10 @@ public class EventControllerTests extends BaseControllerTest {
                                 fieldWithPath("_links.query-events.href").description("link to query events"),
                                 fieldWithPath("_links.update-event.href").description("link to update event"),
                                 fieldWithPath("_links.profile.href").description("link to profile"),
-                                fieldWithPath("manager").description("managered")
+                                fieldWithPath("manager.id").description("manager id"),
+                                fieldWithPath("manager.email").description("manager email"),
+                                fieldWithPath("manager.password").description("manager password"),
+                                fieldWithPath("manager.roles").description("manager roles")
                         )
                 ))
         ;
@@ -220,9 +224,7 @@ public class EventControllerTests extends BaseControllerTest {
     @TestDescription("30개의 이벤트를 10개씩 두번째 페이지 조회하기")
     public void queryEvents() throws Exception {
         // Given
-        IntStream.range(0, 30).forEach(i -> {
-            this.generateEvent(i);
-        });
+        IntStream.range(0, 30).forEach(this::generateEvent);
 
         // When && Then
         this.mockMvc.perform(get("/api/events")
@@ -255,10 +257,52 @@ public class EventControllerTests extends BaseControllerTest {
     }
 
     @Test
+    @TestDescription("30개의 이벤트를 10개씩 두번째 페이지 조회하기 ")
+    public void queryEventsWithAuthentication() throws Exception {
+        // Given
+        IntStream.range(0, 30).forEach(this::generateEvent);
+
+        // When && Then
+        this.mockMvc.perform(get("/api/events")
+                .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                .param("page","1")
+                .param("size","10")
+                .param("sort", "name,DESC")
+        )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("page").exists())
+                .andExpect(jsonPath("_embedded.eventList[0]._links.self").exists())
+                .andExpect(jsonPath("_links.self").exists())
+                .andExpect(jsonPath("_links.profile").exists())
+                .andExpect(jsonPath("_links.create-event").exists())
+                .andDo(document("get-events",
+                        links(
+                                linkWithRel("first").description("link to first page"),
+                                linkWithRel("prev").description("link to prev page"),
+                                linkWithRel("self").description("link to now page"),
+                                linkWithRel("next").description("link to next page"),
+                                linkWithRel("last").description("link to last page"),
+                                linkWithRel("profile").description("link to profile page"),
+                                linkWithRel("create-event").description("link to create-event")
+                        ),
+                        requestParameters(
+                                parameterWithName("page").description("현재 조회하고 있는 페이지 0 = 1페이지"),
+                                parameterWithName("size").description("한번에 조회할 이벤트의 수"),
+                                parameterWithName("sort").description("정렬 순서")
+                        )
+                ))
+        ;
+    }
+
+    @Test
     @TestDescription("기존의 이벤트를 하나 조회하기")
     public void getEvent() throws Exception {
         // Given
          Event event = this.generateEvent(100);
+
+        Optional<Account> findAccount = accountRepository.findByEmail(appProperties.getAdminUsername());
+        event.setManager(findAccount.get());
 
         // When  && Then
         this.mockMvc.perform(get("/api/events/{id}", event.getId()))
@@ -310,6 +354,8 @@ public class EventControllerTests extends BaseControllerTest {
         String eventName = "Updated Event";
         EventDto eventDto = this.modelMapper.map(event, EventDto.class);
         eventDto.setName(eventName);
+        Optional<Account> findAccount = accountRepository.findByEmail(appProperties.getAdminUsername());
+        event.setManager(findAccount.get());
 
         // When & Then
         this.mockMvc.perform(put("/api/events/{id}", event.getId())
