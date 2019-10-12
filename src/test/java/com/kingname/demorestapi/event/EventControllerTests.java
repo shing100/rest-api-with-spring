@@ -48,6 +48,13 @@ public class EventControllerTests extends BaseControllerTest {
     @Autowired
     AccountRepository accountRepository;
 
+    @Before
+    public void setUp() {
+        this.eventRepository.deleteAll();
+        this.accountRepository.deleteAll();
+    }
+
+
     @Test
     @TestDescription("정상적으로 이벤트를 생성하는 테스트")
     public void createEvent() throws Exception {
@@ -129,10 +136,6 @@ public class EventControllerTests extends BaseControllerTest {
         ;
     }
 
-    private String getBearerToken() throws Exception {
-        return "Bearer " + getAccessToken();
-    }
-
     @Test
     @TestDescription("입력값을 올바르지 않게 입력하여 이벤트를 생성하는 테스트")
     public void createEvent_Bad_Request() throws Exception {
@@ -205,18 +208,6 @@ public class EventControllerTests extends BaseControllerTest {
                 .andExpect(jsonPath("_links.index").exists());
     }
 
-    private String getAccessToken() throws Exception {
-        ResultActions perform = this.mockMvc.perform(post("/oauth/token")
-                .with(httpBasic(appProperties.getClientId(), appProperties.getClientSecret()))
-                .param("username", appProperties.getAdminUsername())
-                .param("password", appProperties.getAdminPassword())
-                .param("grant_type", "password"));
-
-        String responseBody = perform.andReturn().getResponse().getContentAsString();
-        Jackson2JsonParser parser = new Jackson2JsonParser();
-        return parser.parseMap(responseBody).get("access_token").toString();
-    }
-
     @Test
     @TestDescription("30개의 이벤트를 10개씩 두번째 페이지 조회하기")
     public void queryEvents() throws Exception {
@@ -254,7 +245,7 @@ public class EventControllerTests extends BaseControllerTest {
     }
 
     @Test
-    @TestDescription("30개의 이벤트를 10개씩 두번째 페이지 조회하기 ")
+    @TestDescription("30개의 이벤트를 10개씩 두번째 페이지 조회하기 로그인 토큰 있시")
     public void queryEventsWithAuthentication() throws Exception {
         // Given
         IntStream.range(0, 30).forEach(this::generateEvent);
@@ -296,10 +287,8 @@ public class EventControllerTests extends BaseControllerTest {
     @TestDescription("기존의 이벤트를 하나 조회하기")
     public void getEvent() throws Exception {
         // Given
-         Event event = this.generateEvent(100);
-
-        Optional<Account> findAccount = accountRepository.findByEmail(appProperties.getAdminUsername());
-        event.setManager(findAccount.get());
+        Account account = createAccount();
+        Event event = this.generateEvent(100, account);
 
         // When  && Then
         this.mockMvc.perform(get("/api/events/{id}", event.getId()))
@@ -330,7 +319,7 @@ public class EventControllerTests extends BaseControllerTest {
                                     fieldWithPath("eventStatus").description("eventStatus"),
                                     fieldWithPath("_links.self.href").description("link to self"),
                                     fieldWithPath("_links.profile.href").description("link to profile"),
-                                    fieldWithPath("manager").description("manager message")
+                                    fieldWithPath("manager.id").description("manager id")
                             )
                         ));
     }
@@ -347,14 +336,16 @@ public class EventControllerTests extends BaseControllerTest {
     @TestDescription("이벤트를 정상적으로 수정하기")
     public void updateEvent() throws Exception {
         // Given
-        Event event = this.generateEvent(200);
+        Account account = createAccount();
+        Event event = this.generateEvent(200, account);
+
         String eventName = "Updated Event";
         EventDto eventDto = this.modelMapper.map(event, EventDto.class);
         eventDto.setName(eventName);
 
         // When & Then
         this.mockMvc.perform(put("/api/events/{id}", event.getId())
-                    .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                    .header(HttpHeaders.AUTHORIZATION, getBearerToken(false))
                     .contentType(MediaType.APPLICATION_JSON_UTF8)
                     .content(this.objectMapper.writeValueAsString(eventDto)))
                 .andDo(print())
@@ -439,24 +430,65 @@ public class EventControllerTests extends BaseControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+    private String getBearerToken() throws Exception {
+        return "Bearer " + getAccessToken(true);
+    }
+
+    private String getBearerToken(boolean needToCreateAccount) throws Exception {
+        return "Bearer " + getAccessToken(needToCreateAccount);
+    }
+
+    private String getAccessToken(boolean needToCreateAccount) throws Exception {
+        if (needToCreateAccount) {
+            createAccount();
+        }
+
+        ResultActions perform = this.mockMvc.perform(post("/oauth/token")
+                .with(httpBasic(appProperties.getClientId(), appProperties.getClientSecret()))
+                .param("username", appProperties.getAdminUsername())
+                .param("password", appProperties.getAdminPassword())
+                .param("grant_type", "password"));
+
+        String responseBody = perform.andReturn().getResponse().getContentAsString();
+        Jackson2JsonParser parser = new Jackson2JsonParser();
+        return parser.parseMap(responseBody).get("access_token").toString();
+    }
+
+    private Account createAccount() {
+        Account account = Account.builder()
+                .email(appProperties.getAdminUsername())
+                .password(appProperties.getAdminPassword())
+                .roles(Set.of(AccountRole.ADDMIN, AccountRole.USER))
+                .build();
+        return this.accountService.saveAccount(account);
+    }
+
+    private Event generateEvent(int index, Account account) {
+        Event event = buildEvent(index);
+        event.setManager(account);
+        return this.eventRepository.save(event);
+    }
 
     private Event generateEvent(int index) {
-        Event event = Event.builder()
-                .name("event " + index)
-                .description("test event")
-                .beginEnrollmentDateTime(LocalDateTime.of(2018,11,23,14,21))
-                .closeEnrollmentDateTime(LocalDateTime.of(2018,11,24,14,21))
-                .beginEventDateTime(LocalDateTime.of(2018,11,25,14,21))
-                .endEventDateTime(LocalDateTime.of(2018,11,26,14,21))
-                .basePrice(1000)
-                .maxPrice(2000)
-                .limitOfEnrollment(1100)
-                .location("test space")
-                .free(false)
-                .offline(true)
-                .eventStatus(EventStatus.DRAFT)
-                .build();
-
+        Event event = buildEvent(index);
         return this.eventRepository.save(event);
+    }
+
+    private Event buildEvent(int index) {
+        return Event.builder()
+                    .name("event " + index)
+                    .description("test event")
+                    .beginEnrollmentDateTime(LocalDateTime.of(2018,11,23,14,21))
+                    .closeEnrollmentDateTime(LocalDateTime.of(2018,11,24,14,21))
+                    .beginEventDateTime(LocalDateTime.of(2018,11,25,14,21))
+                    .endEventDateTime(LocalDateTime.of(2018,11,26,14,21))
+                    .basePrice(1000)
+                    .maxPrice(2000)
+                    .limitOfEnrollment(1100)
+                    .location("test space")
+                    .free(false)
+                    .offline(true)
+                    .eventStatus(EventStatus.DRAFT)
+                    .build();
     }
 }

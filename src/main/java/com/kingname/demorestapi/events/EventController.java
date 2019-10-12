@@ -117,7 +117,7 @@ public class EventController {
         }
 
         Event existingEvent = optionalEvent.get();
-        if (existingEvent.getManager().equals(currentAccount)) {
+        if (!existingEvent.getManager().equals(currentAccount)) {
             return new ResponseEntity(HttpStatus.UNAUTHORIZED);
         }
 
