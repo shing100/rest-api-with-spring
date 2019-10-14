@@ -846,3 +846,106 @@ OAuth2로 인증을 하려면 일단 Account 부터
 
 ### 외부 설정으로 기본 유저와 클라이언트 정보 빼내기
 - @ConfigurationProperties
+
+# 이벤트 API 점검
+
+### 토큰 발급 받기
+- POST /oauth/token
+- BASIC authentication 헤더
+    - client Id(myApp) + client secret(pass)
+- 요청 본문 폼
+    - username: admin@email.com
+    - password: admin
+    - grant_type: password
+
+ 
+ 
+### 토큰 갱신하기
+- POST /oauth/token
+- BASIC authentication 헤더
+    - client Id(myApp) + client secret(pass)
+- 요청 본문 폼
+    - token: 처음에 발급받았던 refersh 토큰
+    - grant_type: refresh_token
+
+ 
+
+### 이벤트 목록 조회 API
+- 로그인 했을 때
+  - 이벤트 생성 링크 제공
+
+### 이벤트 조회
+- 로그인 했을 때
+    - 이벤트 Manager인 경우에는 이벤트 수정 링크 제공
+ 
+
+
+
+# 스프링 시큐리티 현재 사용자
+
+## SecurityContext
+- 자바 ThreadLocal 기반 구현으로 인증 정보를 담고 있다.
+- 인증 정보 꺼내는 방법: 
+```java
+Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+```
+```java
+@AuthenticationPrincipal spring.security.User user
+```
+- 인증 안한 경우에 null
+- 인증 한 경우에는 username과 authorities 참조 가능
+
+### spring.security.User를 상속받는 클래스를 구현하면
+
+- 도메인 User를 받을 수 있다.
+  - @AuthenticationPrincipa me.whiteship.user.UserAdapter 
+  - Adatepr.getUser().getId()
+
+### SpEL을 사용하면
+```java
+@AuthenticationPrincipa(expression=”account”) me.whiteship.user.Account 
+
+@Target(ElementType.PARAMETER)
+@Retention(RetentionPolicy.RUNTIME)
+@AuthenticationPrincipal(expression = "account")
+public @interface CurrentUser {
+}
+```
+
+### 커스텀 애노테이션을 만들면
+```java
+@CurrentUser Account account
+
+expression = "#this == 'anonymousUser' ? null : account"
+```
+- 현재 인증 정보가 anonymousUse 인 경우에는 null을 보내고 아니면 “account”를 꺼내준다.
+
+### 조회 API 개선
+- 현재 조회하는 사용자가 owner인 경우에 update 링크 추가 (HATEOAS)
+
+### 수정 API 개선
+- 현재 사용자가 이벤트 owner가 아닌 경우에 403 에러 발생 
+
+# Events API 개선: 출력값 제한하기
+
+### 생성 API 개선
+- Event owner 설정
+- 응답에서 owner의 id만 보내 줄 것.
+```json
+{
+  "id" : 4,
+  "name" : "test 3PISM1Ju",
+  "description" : "test event",
+...
+  "free" : false,
+  "eventStatus" : "DRAFT",
+  "owner" : {
+    "id" : 3,
+    "email" : "limgeun@email.com",
+    "password" : "{bcrypt}$2a$10$3z/rHmeYsKpoOQR3aUq38OmZjZNsrGfRZxSnmpLfL3lpLxjD5/JZ6",
+    "roles" : [ "USER", "ADMIN" ]
+  },
+```
+- JsonSerializer<User> 구현
+- @JsonSerialize(using) 설정
+
